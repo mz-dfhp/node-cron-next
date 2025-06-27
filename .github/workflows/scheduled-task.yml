@@ -1,0 +1,53 @@
+name: Scheduled Gold Price Notification
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # 每 5 分钟执行一次
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set timezone to Asia/Shanghai
+        uses: szenius/set-timezone@v2.0
+        with:
+          timezoneLinux: "Asia/Shanghai"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm i -g pnpm
+          pnpm install --no-frozen-lockfile
+          pnpm run build
+
+      - name: Verify environment variables
+        run: |
+          if [ -z "$DINGTALK_TOKEN" ]; then
+            echo "❌ DINGTALK_TOKEN is not set"
+            exit 1
+          else
+            echo "✅ DINGTALK_TOKEN is set"
+          fi
+
+          if [ -z "$DINGTALK_SECRET" ]; then
+            echo "❌ DINGTALK_SECRET is not set"
+            exit 1
+          else
+            echo "✅ DINGTALK_SECRET is set"
+          fi
+        env:
+          DINGTALK_TOKEN: ${{ secrets.DINGTALK_TOKEN }}
+          DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
+
+      - name: Execute script
+        run:  pnpm run schedule
+        env:
+          DINGTALK_TOKEN: ${{ secrets.DINGTALK_TOKEN }}
+          DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
