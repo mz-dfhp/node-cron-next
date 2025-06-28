@@ -1,4 +1,5 @@
 import { createHmac } from "node:crypto";
+import dayjs from 'dayjs'
 
 function notify() {
     function getWebhookUrl() {
@@ -113,4 +114,7 @@ function notify() {
     void run();
 }
 
-notify();
+const time = dayjs()
+if (!(time.day() === 0 || time.day() === 6 && time.get('hour') > 4)) {
+    notify();
+}
